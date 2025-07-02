@@ -76,33 +76,44 @@
         const name = document.getElementById("name").value.trim();
         const email = document.getElementById("email").value.trim();
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 inline-block mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>Loading...`;
 
         // Email validation
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!name || !email) {
             showToast("Please enter your name and email.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
             return;
         }
         if (!emailPattern.test(email)) {
             showToast("Please enter a valid email address.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
             return;
         }
 
         try {
             const response = await fetch("https://api.orderrave.ng/api/plaited/waitlist", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                "X-CSRF-TOKEN": csrfToken,
-            },
-            body: JSON.stringify({ name, email }),
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ name, email }),
             });
 
             if (!response.ok) {
-            const error = await response.json();
-            showToast(error.message || "An error occurred.", "error");
-            return;
+                const error = await response.json();
+                showToast(error.message || "An error occurred.", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
             }
 
             showToast("You're on the waitlist! 🎉");
@@ -111,8 +122,11 @@
         } catch (error) {
             showToast("Network error. Please try again.", "error");
             console.error("Waitlist submission failed:", error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
         }
-        }
+    }
   </script>
 </head>
 
